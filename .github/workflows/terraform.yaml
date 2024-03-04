@@ -37,6 +37,9 @@ jobs:
         }
         EOF
 
+    - name: Change to Terraform directory**
+      run: cd terraform
+
     - name: Format Terraform code
       id: Format
       run: terraform fmt
