@@ -32,7 +32,7 @@ jobs:
             bucket = "shahupawar"
             key    = "terraform/state/terraform.tfstate"
             region = "us-east-1"
-            dynamodb_table = "YOUR_DYNAMODB_TABLE_NAME"  # Optional, for locking
+            #dynamodb_table = "YOUR_DYNAMODB_TABLE_NAME"  # Optional, for locking
           }
         }
         EOF
