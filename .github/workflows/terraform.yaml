@@ -1,0 +1,49 @@
+name: Terraform on Staging for vprofile-project
+on:
+  push:
+    branches:
+    - main
+    - stage
+
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Configure AWS credentials
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        aws configure set region us-east-1
+
+    - name: Configure S3 backend
+      run: |
+        cat <<EOF >> backend.tf
+        terraform {
+          backend "s3" {
+            bucket = "shahupawar"
+            key    = "terraform/state/terraform.tfstate"
+            region = "us-east-1"
+            dynamodb_table = "YOUR_DYNAMODB_TABLE_NAME"  # Optional, for locking
+          }
+        }
+        EOF
+
+    - name: Format Terraform code
+      id: Format
+      run: terraform fmt
+
+    - name: Run Terraform init
+      run: terraform init
+
+    - name: Run Terraform plan (optional)
+      id: plan
+      run: terraform plan
