@@ -1,54 +1,31 @@
-name: Terraform on Staging for vprofile-project
+name: Terraform Automation
+
 on:
   push:
     branches:
-    - main
     - stage
-    paths:
-    - terraform/**
-
 
 jobs:
   terraform:
+    name: Terraform
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: stage # Checkout the staging branch
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.0
 
-    - name: Configure AWS credentials
+    - name: Configure AWS Credentials (using environment variables)
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1 # adjust region as needed
       run: |
-        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-        aws configure set region us-east-1
+        terraform init terraform
+        terraform plan terraform
 
-    - name: Configure S3 backend
-      run: |
-        cat <<EOF >> backend.tf
-        terraform {
-          backend "s3" {
-            bucket = "shahupawar"
-            key    = "terraform/state/terraform.tfstate"
-            region = "us-east-1"
-            #dynamodb_table = "YOUR_DYNAMODB_TABLE_NAME"  # Optional, for locking
-          }
-        }
-        EOF
-
-    - name: Change to Terraform directory**
-      run: cd terraform
-
-    - name: Format Terraform code
-      id: Format
-      run: terraform fmt
-
-    - name: Run Terraform init
-      run: terraform init
-
-    - name: Run Terraform plan (optional)
-      id: plan
-      run: terraform plan
