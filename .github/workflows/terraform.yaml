@@ -1,29 +1,65 @@
-name: Terraform Automation
+name: "Terraform Infrastructure Change Management Pipeline with GitHub Actions"
 
 on:
   push:
     branches:
-    - stage
+    - main
+    paths:
+    - terraform/**
+  pull_request:
+    branches:
+    - main
+    paths:
+    - terraform/**
+
+env:
+  # verbosity setting for Terraform logs
+  TF_LOG: INFO
+  # Credentials for deployment to AWS
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  # S3 bucket for the Terraform state
+  BUCKET_TF_STATE: ${{ secrets.TERRAFORM_TF_STATE}}
 
 jobs:
   terraform:
-    name: Terraform
+    name: "Terraform Infrastructure Change Management"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        # We keep Terraform files in the terraform directory.
+        working-directory: ./terraform
+
     steps:
-    - name: Checkout code
+    - name: Checkout the repository to the runner
       uses: actions/checkout@v2
-      with:
-        ref: stage # Checkout the staging branch
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v1
+    - name: Setup Terraform with specified version on the runner
+      uses: hashicorp/setup-terraform@v2
 
+    - name: Terraform init
+      id: init
+      run: terraform init -backend-config="bucket=$BUCKET_TF_STATE"
 
-    - name: Configure AWS Credentials (using environment variables)
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1 # adjust region as needed
-      run: |
-        terraform init -chdir=terraform
-        terraform plan -chdir=terraform
+    - name: Terraform format
+      id: fmt
+      run: terraform fmt -check
+
+    - name: Terraform validate
+      id: validate
+      run: terraform validate
+
+    - name: Terraform plan
+      id: plan
+      if: github.event_name == 'pull_request'
+      run: terraform plan -no-color -input=false
+      continue-on-error: true
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
+#     - name: Terraform Apply
+#       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#       run: terraform apply -auto-approve -input=false
