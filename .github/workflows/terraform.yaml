@@ -54,9 +54,9 @@ jobs:
 
     - name: Terraform plan
       id: plan
-      if: github.event_name == 'pull_request'
+      #     if: github.event_name == 'pull_request'
       run: terraform plan -no-color -input=false
-      continue-on-error: true
+      #     continue-on-error: true
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
