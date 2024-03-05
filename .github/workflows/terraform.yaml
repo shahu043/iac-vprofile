@@ -33,14 +33,14 @@ jobs:
 
     steps:
     - name: Checkout the repository to the runner
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Terraform with specified version on the runner
       uses: hashicorp/setup-terraform@v2
 
     - name: Terraform init
       id: init
-      run: terraform init -backend-config="bucket=$BUCKET_TF_STATE"
+      run: terraform init -backend-config="bucket=$TERRAFORM_TF_STATE"
 
     - name: Terraform format
       id: fmt
