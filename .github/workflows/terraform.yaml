@@ -17,8 +17,7 @@ jobs:
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.0.0
+
 
     - name: Configure AWS Credentials (using environment variables)
       env:
@@ -26,6 +25,5 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1 # adjust region as needed
       run: |
-        terraform init terraform
-        terraform plan terraform
-
+        terraform init -chdir=terraform
+        terraform plan -chdir=terraform
