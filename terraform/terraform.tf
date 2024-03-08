@@ -25,11 +25,11 @@ terraform {
       version = "~> 2.23.0"
     }
   }
-    
-    backend "s3" {
-     bucket = "shahupawar"
-     key    = "terraform.tfstate"
-     region = "us-east-1"
+
+  backend "s3" {
+    bucket = "shahupawar"
+    key    = "terraform.tfstate"
+    region = "us-east-1"
   }
   required_version = "~> 1.6.3"
 }
