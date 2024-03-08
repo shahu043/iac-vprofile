@@ -55,7 +55,7 @@ jobs:
     - name: Terraform plan
       id: plan
       #     if: github.event_name == 'pull_request'
-      run: terraform plan -no-color -input=false
+      run: terraform plan -no-color -input=false -out planfile
       #     continue-on-error: true
 
     - name: Terraform Plan Status
@@ -65,4 +65,4 @@ jobs:
     - name: Terraform Apply
       id: apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false
+      run: terraform apply -auto-approve -input=false - parallelism=1 planfile
